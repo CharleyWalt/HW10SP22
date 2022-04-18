@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as pyplot
 import scipy as sp
-import scipy.optimize
 import scipy.optimize as opt
 
 from math import *
@@ -41,7 +40,7 @@ class trendlineClass():
         :param a: the coefficients for the fit
         :return: the value of the function
         """
-        y = a[0] + a[1]*exp(a[2]*xval)  # the exponential function to evaluate at xval
+        y = a[0] + a[1]*exp(a[2]*xval)  # the exponential function to evaluate at xval with given coefficients a
         return y
 
     def SSE(self, fn):
@@ -83,15 +82,14 @@ class trendlineClass():
         exponential fit vs. the self.x,self.y data.
         :return: the coefficients for the exponential fit that minimizes the objective function
         """
-        #$JES MISSING CODE HERE$
-        # it seems like the difficult part here is figuring out how to pass the coefficient values through minimize and
-        # SSE. We need SSE to have a new set of coefficient values for each time it runs, and we need minimize to
-        # guess new values for the coefficients and send them to SSE to check if the SSE value is lower than previous.
-        # How do we tell minimize that the three coefficients are what we want to vary with each iteration?
-        x0 = np.array(0, 0, 0)
-        fun = self.SSE(self.Exp)
-        scipy.optimize.minimize(fun, x0 )  # this clearly doesn't work like this, not quite sure how to get it
 
+        a0 = np.array([0, 0, 0])  # initial coefficient guess to send to minimize
+
+        # minimize the SSE
+        def obj(a):
+            return self.SSE(lambda x: self.Exp(x,a))  # SSE calls Exp for every set of coefficients that minimize checks
+        res = opt.minimize(obj, a0, method='Nelder-Mead')  # minimize the objective function, the SSE of Exp by varying a
+        return res.x  # only return the array of coefficients out of the minimize report
 
     def GetEq(self, aa, exp=False):
         """
@@ -202,11 +200,11 @@ def main():
 
     cubx, cuby, RSqCub, cubeq, cubTexEq, cublbl = LS.PlotLeastSquares(3,showpoints=True, npoints=500)
 
-    # expx, expy, RSqExp, expeq, expTexEq, explbl = LS.PlotLeastSquares(power=3, exp=True)
+    expx, expy, RSqExp, expeq, expTexEq, explbl = LS.PlotLeastSquares(power=3, exp=True)
 
     pyplot.plot(linx,liny, linewidth=2, linestyle='dashed', color='black', label=r'Linear fit ($R^2={:0.3f}$)'.format(RSqLin))
     pyplot.plot(cubx,cuby, linewidth=2, linestyle='dotted', color='black', label='Cubic fit ($R^2={:0.3f}$)'.format(RSqCub))
-    # pyplot.plot(expx,expy, linewidth=2, linestyle='solid', color='black', label='Exp fit ($R^2={:0.3f}$)'.format(RSqExp))
+    pyplot.plot(expx,expy, linewidth=2, linestyle='solid', color='black', label='Exp fit ($R^2={:0.3f}$)'.format(RSqExp))
     pyplot.plot(x, y, linestyle='none', marker='o', markersize=10, markerfacecolor='white', markeredgecolor='black', label='Data')
     pyplot.xlabel('X values')
     pyplot.ylabel('Y values')

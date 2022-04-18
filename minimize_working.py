@@ -17,7 +17,7 @@ def SSE(fn):
 
 
 def OptimizeFit(a):
-        a[0], a[1], a[2] = a
+        # a[0], a[1], a[2] = a  # this line is redundent
         return SSE(lambda xval: (a[0]+a[1]*np.exp(a[2]*xval)))
 
 vals = opt.minimize(OptimizeFit, np.array([0, 0, 0]), method='Nelder-Mead')
